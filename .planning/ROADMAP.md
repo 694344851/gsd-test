@@ -13,7 +13,7 @@
 - [x] **Phase 1: Data Foundation** - 建立门诊诊鉴的数据接入、指标聚合和时间口径基础
 - [x] **Phase 2: Dashboard Overview** - 完成首页时间筛选、概览卡片和趋势图
 - [x] **Phase 3: Quality Distribution Insights** - 完成科室分布和高发问题病种分析
-- [ ] **Phase 4: Realtime Evaluation Workflow** - 完成医生端一键诊鉴和评估结果沉淀
+- [x] **Phase 4: Realtime Evaluation Workflow** - 完成医生端一键诊鉴和评估结果沉淀
 - [ ] **Phase 5: Drilldown and Release Hardening** - 完成管理下钻、导出、权限和上线收口
 
 ## Phase Details
@@ -81,8 +81,8 @@ Plans:
 
 Plans:
 - [x] 04-01: 设计医生端触发入口和结果展示结构
-- [ ] 04-02: 实现诊鉴服务编排、超时控制和结果回传
-- [ ] 04-03: 实现评估记录存储和统计复用链路
+- [x] 04-02: 实现诊鉴服务编排、超时控制和结果回传
+- [x] 04-03: 实现评估记录存储和统计复用链路
 
 ### Phase 5: Drilldown and Release Hardening
 **Goal**: 交付问题病例下钻、导出、角色权限和上线前收口工作
@@ -111,5 +111,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Data Foundation | 3/3 | Complete | 2026-03-25 |
 | 2. Dashboard Overview | 3/3 | Complete | 2026-03-25 |
 | 3. Quality Distribution Insights | 2/2 | Complete | 2026-03-25 |
-| 4. Realtime Evaluation Workflow | 1/3 | In Progress | - |
+| 4. Realtime Evaluation Workflow | 3/3 | Complete | 2026-03-25 |
 | 5. Drilldown and Release Hardening | 0/3 | Not started | - |

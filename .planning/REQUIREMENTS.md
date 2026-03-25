@@ -40,7 +40,7 @@
 - [x] **EVAL-01**: 门诊医生可以在病历界面一键触发诊鉴评估
 - [x] **EVAL-02**: 系统可以在约 10 秒内返回诊断依据完整性和缺漏诊断评估结果
 - [x] **EVAL-03**: 评估结果需要包含具体评估依据和可操作建议，便于医生补充病历或调整诊断
-- [ ] **EVAL-04**: 系统需要记录单次诊鉴结果，供统计首页和病例下钻复用
+- [x] **EVAL-04**: 系统需要记录单次诊鉴结果，供统计首页和病例下钻复用
 
 ### Drilldown and Export
 
@@ -92,7 +92,7 @@
 | EVAL-01 | Phase 4 | Complete |
 | EVAL-02 | Phase 4 | Complete |
 | EVAL-03 | Phase 4 | Complete |
-| EVAL-04 | Phase 4 | Pending |
+| EVAL-04 | Phase 4 | Complete |
 | OPER-01 | Phase 5 | Pending |
 | OPER-02 | Phase 5 | Pending |
 | OPER-03 | Phase 5 | Pending |
