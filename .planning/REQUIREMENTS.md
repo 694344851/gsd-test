@@ -7,7 +7,7 @@
 
 ### Data Integration
 
-- [ ] **DATA-01**: 系统可以接入门诊病历、诊断结果和评估结果数据，并形成统一分析数据模型
+- [x] **DATA-01**: 系统可以接入门诊病历、诊断结果和评估结果数据，并形成统一分析数据模型
 - [ ] **DATA-02**: 系统可以按日、周、月等统计口径聚合门诊量、评估病例数、诊断依据不完整比例和缺失诊断比例
 - [ ] **DATA-03**: 系统可以区分已评估与未评估病例，并支撑后续图表和下钻查询
 
@@ -74,7 +74,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Pending |
 | DASH-01 | Phase 1 | Pending |

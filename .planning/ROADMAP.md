@@ -31,9 +31,9 @@
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: 梳理数据来源、字段映射和数据模型
-- [ ] 01-02: 实现指标聚合与默认时间口径计算
-- [ ] 01-03: 建立数据校验样例和基础查询接口
+- [x] 01-01-PLAN.md — 建立 SQL 测试基座、夹具数据与双事实数据模型
+- [ ] 01-02-PLAN.md — 实现默认时间窗口、核心聚合语义与查询 contract
+- [ ] 01-03-PLAN.md — 发布概览/趋势/状态拆分查询服务与场景接口
 
 ### Phase 2: Dashboard Overview
 **Goal**: 交付首页时间筛选、概览指标卡和门诊诊断质量趋势图
@@ -108,7 +108,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 0/3 | Not started | - |
+| 1. Data Foundation | 1/3 | In Progress | 2026-03-25 |
 | 2. Dashboard Overview | 0/3 | Not started | - |
 | 3. Quality Distribution Insights | 0/2 | Not started | - |
 | 4. Realtime Evaluation Workflow | 0/3 | Not started | - |
