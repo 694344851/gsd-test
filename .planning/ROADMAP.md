@@ -11,8 +11,8 @@
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Data Foundation** - 建立门诊诊鉴的数据接入、指标聚合和时间口径基础
-- [ ] **Phase 2: Dashboard Overview** - 完成首页时间筛选、概览卡片和趋势图
-- [ ] **Phase 3: Quality Distribution Insights** - 完成科室分布和高发问题病种分析
+- [x] **Phase 2: Dashboard Overview** - 完成首页时间筛选、概览卡片和趋势图
+- [x] **Phase 3: Quality Distribution Insights** - 完成科室分布和高发问题病种分析
 - [ ] **Phase 4: Realtime Evaluation Workflow** - 完成医生端一键诊鉴和评估结果沉淀
 - [ ] **Phase 5: Drilldown and Release Hardening** - 完成管理下钻、导出、权限和上线收口
 
@@ -48,9 +48,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — 建立 dashboard 壳、时间筛选骨架与本地 HTTP 数据桥
-- [ ] 02-02-PLAN.md — 实现概览卡比较数据、格式化规则与五张摘要卡
-- [ ] 02-03-PLAN.md — 实现双轴趋势图、tooltip 交互与趋势模块状态
+- [x] 02-01-PLAN.md — 建立 dashboard 壳、时间筛选骨架与本地 HTTP 数据桥
+- [x] 02-02-PLAN.md — 实现概览卡比较数据、格式化规则与五张摘要卡
+- [x] 02-03-PLAN.md — 实现双轴趋势图、tooltip 交互与趋势模块状态
 
 ### Phase 3: Quality Distribution Insights
 **Goal**: 交付科室诊断质量分布和高发问题病种洞察模块
@@ -64,8 +64,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: 实现科室分布气泡图与筛选交互
-- [ ] 03-02: 实现病种词云计算、排序和视觉表达
+- [x] 03-01: 实现科室分布气泡图与筛选交互
+- [x] 03-02: 实现病种词云计算、排序和视觉表达
 
 ### Phase 4: Realtime Evaluation Workflow
 **Goal**: 交付医生端一键诊鉴、结果展示和评估记录沉淀能力
@@ -80,7 +80,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: 设计医生端触发入口和结果展示结构
+- [x] 04-01: 设计医生端触发入口和结果展示结构
 - [ ] 04-02: 实现诊鉴服务编排、超时控制和结果回传
 - [ ] 04-03: 实现评估记录存储和统计复用链路
 
@@ -109,7 +109,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete | 2026-03-25 |
-| 2. Dashboard Overview | 0/3 | Not started | - |
-| 3. Quality Distribution Insights | 0/2 | Not started | - |
-| 4. Realtime Evaluation Workflow | 0/3 | Not started | - |
+| 2. Dashboard Overview | 3/3 | Complete | 2026-03-25 |
+| 3. Quality Distribution Insights | 2/2 | Complete | 2026-03-25 |
+| 4. Realtime Evaluation Workflow | 1/3 | In Progress | - |
 | 5. Drilldown and Release Hardening | 0/3 | Not started | - |
