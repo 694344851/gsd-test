@@ -1,0 +1,7 @@
+{
+  "name": "outpatient-quality-agent",
+  "private": true,
+  "dependencies": {
+    "pg": "8.20.0"
+  }
+}
