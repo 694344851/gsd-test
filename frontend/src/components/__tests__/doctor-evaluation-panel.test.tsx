@@ -100,6 +100,7 @@ describe('DoctorEvaluationPanel', () => {
     expect(await screen.findByText('现病史与辅助检查依据仍需补充。')).toBeInTheDocument();
     expect(screen.getByText(/先兆流产 · medium/)).toBeInTheDocument();
     expect(screen.getByText('补充现病史关键时间线。')).toBeInTheDocument();
+    expect(screen.getByText('追踪编号：eval-001')).toBeInTheDocument();
     expect(screen.getByText('本结果仅用于辅助诊断质量评估，不替代医生临床判断。')).toBeInTheDocument();
   });
 

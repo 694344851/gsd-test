@@ -109,6 +109,10 @@ export function DoctorEvaluationPanel({
         />
       ) : null}
 
+      {result !== null ? (
+        <p className="module-state__body">追踪编号：{result.evaluation_id}</p>
+      ) : null}
+
       {status === 'success' && result !== null ? (
         <div className="dashboard-layout">
           <EvaluationSummaryBanner
