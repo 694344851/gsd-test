@@ -1,7 +1,10 @@
 import type { EmrEncounterContext } from '../lib/emr-encounter-contracts';
+import type { RealtimeEvaluationRequest, RealtimeEvaluationResponse } from '../lib/realtime-evaluation-contracts';
+import { DoctorEvaluationPanel } from '../components/doctor-evaluation-panel';
 
 export interface DoctorEvaluationPageProps {
   encounter: EmrEncounterContext;
+  onRunEvaluation?: (request: RealtimeEvaluationRequest) => Promise<RealtimeEvaluationResponse>;
 }
 
 function renderSectionPreview(label: string, value?: string) {
@@ -13,7 +16,22 @@ function renderSectionPreview(label: string, value?: string) {
   );
 }
 
-export function DoctorEvaluationPage({ encounter }: DoctorEvaluationPageProps) {
+const defaultRunEvaluation = async (): Promise<RealtimeEvaluationResponse> => ({
+  evaluation_id: 'pending-host-integration',
+  status: 'failed',
+  elapsed_ms: 0,
+  assistive_notice: '本结果仅用于辅助诊断质量评估，不替代医生临床判断。',
+  basis_completeness: {
+    verdict: 'incomplete',
+    summary: '当前页面尚未接入后端诊鉴执行能力。',
+    missing_items: [],
+  },
+  potential_missing_diagnoses: [],
+  rationale: ['请在后续计划中接入后端诊鉴服务。'],
+  suggestions: ['确认宿主已注入 onRunEvaluation(request) 回调。'],
+});
+
+export function DoctorEvaluationPage({ encounter, onRunEvaluation = defaultRunEvaluation }: DoctorEvaluationPageProps) {
   return (
     <main className="dashboard-page">
       <header className="dashboard-page__hero">
@@ -50,18 +68,7 @@ export function DoctorEvaluationPage({ encounter }: DoctorEvaluationPageProps) {
         </div>
       </section>
 
-      <section className="dashboard-panel" aria-label="诊鉴触发区域">
-        <h2 className="dashboard-panel__heading">诊鉴触发</h2>
-        <div className="module-state">
-          <h3 className="module-state__heading">诊鉴</h3>
-          <p className="module-state__body">
-            系统将基于当前主诉、现病史、查体、辅助检查和已录入诊断进行辅助评估，不替代医生临床判断。
-          </p>
-          <button className="dashboard-toolbar__apply" type="button">
-            诊鉴
-          </button>
-        </div>
-      </section>
+      <DoctorEvaluationPanel encounter={encounter} onRunEvaluation={onRunEvaluation} />
 
       <section className="dashboard-panel" aria-label="病历片段预览">
         <h2 className="dashboard-panel__heading">病历片段预览</h2>
@@ -73,15 +80,6 @@ export function DoctorEvaluationPage({ encounter }: DoctorEvaluationPageProps) {
         </div>
       </section>
 
-      <section className="dashboard-panel" aria-label="结果预留区域">
-        <h2 className="dashboard-panel__heading">评估结果</h2>
-        <div className="module-state">
-          <h3 className="module-state__heading">等待触发后返回结构化辅助评估</h3>
-          <p className="module-state__body">
-            结果区域将固定展示诊断依据完整性、潜在缺漏诊断、评估依据和行动建议。
-          </p>
-        </div>
-      </section>
     </main>
   );
 }
