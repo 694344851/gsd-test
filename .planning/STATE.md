@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-25T09:33:15.655Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-25T09:44:07.627Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 04 (realtime-evaluation-workflow) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Plan: 2 of 3
 | Phase 03-quality-distribution-insights P01 | - | 2 tasks | - |
 | Phase 03-quality-distribution-insights P02 | - | 2 tasks | - |
 | Phase 04-realtime-evaluation-workflow P01 | 7min | 2 tasks | 11 files |
+| Phase 04 P02 | 3min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 03-quality-distribution-insights]: Disease severity bands now map deterministically from `top_20` to `tail` and render center-outward in the homepage cloud module.
 - [Phase 04-realtime-evaluation-workflow]: The doctor evaluation panel owns visual state locally but delegates execution to an injected onRunEvaluation(request) boundary for later API wiring.
 - [Phase 04-realtime-evaluation-workflow]: Doctor-side realtime UI stays host-mounted through mountDoctorEvaluationEmbed instead of taking router ownership.
+- [Phase 04]: Realtime evaluation now runs through a synchronous POST boundary with a hard timeout budget and normalized success/timeout/failed payloads.
+- [Phase 04]: DoctorEvaluationPanel defaults to the real POST client while preserving an injectable execution seam for deterministic tests and host overrides.
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T09:33:15.653Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-25T09:44:07.624Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
