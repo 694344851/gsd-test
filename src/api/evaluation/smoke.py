@@ -10,6 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.api.http_realtime_evaluation import handle_realtime_evaluation
+from src.api.evaluation.repository import InMemoryEvaluationRepository
 
 
 REQUEST_PAYLOAD = {
@@ -59,21 +60,40 @@ class FailedProvider:
 
 def main() -> int:
     body = json.dumps(REQUEST_PAYLOAD, ensure_ascii=False).encode("utf-8")
+    repository = InMemoryEvaluationRepository()
 
-    success_payload, success_status = handle_realtime_evaluation(body, provider=SuccessProvider(), timeout_seconds=0.5)
+    success_payload, success_status = handle_realtime_evaluation(
+        body,
+        provider=SuccessProvider(),
+        repository=repository,
+        timeout_seconds=0.5,
+    )
     assert success_status.value == 200
     assert success_payload["status"] == "success"
     assert success_payload["basis_completeness"]["verdict"] == "complete"
+    assert repository.records[success_payload["evaluation_id"]].status == "success"
 
-    timeout_payload, timeout_status = handle_realtime_evaluation(body, provider=TimeoutProvider(), timeout_seconds=0.01)
+    timeout_payload, timeout_status = handle_realtime_evaluation(
+        body,
+        provider=TimeoutProvider(),
+        repository=repository,
+        timeout_seconds=0.01,
+    )
     assert timeout_status.value == 200
     assert timeout_payload["status"] == "timeout"
     assert timeout_payload["suggestions"]
+    assert repository.records[timeout_payload["evaluation_id"]].status == "timeout"
 
-    failed_payload, failed_status = handle_realtime_evaluation(body, provider=FailedProvider(), timeout_seconds=0.5)
+    failed_payload, failed_status = handle_realtime_evaluation(
+        body,
+        provider=FailedProvider(),
+        repository=repository,
+        timeout_seconds=0.5,
+    )
     assert failed_status.value == 200
     assert failed_payload["status"] == "failed"
     assert failed_payload["basis_completeness"]["summary"]
+    assert repository.records[failed_payload["evaluation_id"]].status == "failed"
     return 0
 
 

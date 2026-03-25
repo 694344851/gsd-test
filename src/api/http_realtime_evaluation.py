@@ -6,12 +6,14 @@ from http import HTTPStatus
 from src.api.evaluation.contracts import RequestValidationError, RealtimeEvaluationRequest
 from src.api.evaluation.orchestration import DEFAULT_TIMEOUT_SECONDS, run_realtime_evaluation
 from src.api.evaluation.provider import RealtimeEvaluationProvider
+from src.api.evaluation.repository import EvaluationRepository
 
 
 def handle_realtime_evaluation(
     body: bytes,
     *,
     provider: RealtimeEvaluationProvider | None = None,
+    repository: EvaluationRepository | None = None,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
 ) -> tuple[dict, HTTPStatus]:
     try:
@@ -27,5 +29,10 @@ def handle_realtime_evaluation(
     except RequestValidationError as exc:
         return {"error": str(exc)}, HTTPStatus.BAD_REQUEST
 
-    result = run_realtime_evaluation(request, provider=provider, timeout_seconds=timeout_seconds)
+    result = run_realtime_evaluation(
+        request,
+        provider=provider,
+        repository=repository,
+        timeout_seconds=timeout_seconds,
+    )
     return result.to_dict(), HTTPStatus.OK
