@@ -2,13 +2,14 @@ import { useState } from 'react';
 
 import type { EmrEncounterContext } from '../lib/emr-encounter-contracts';
 import type { RealtimeEvaluationRequest, RealtimeEvaluationResponse } from '../lib/realtime-evaluation-contracts';
+import { runRealtimeEvaluation } from '../lib/realtime-evaluation-api';
 import { EvaluationResultCard } from './evaluation-result-card';
 import { EvaluationSuggestionList } from './evaluation-suggestion-list';
 import { EvaluationSummaryBanner } from './evaluation-summary-banner';
 
 export interface DoctorEvaluationPanelProps {
   encounter: EmrEncounterContext;
-  onRunEvaluation: (request: RealtimeEvaluationRequest) => Promise<RealtimeEvaluationResponse>;
+  onRunEvaluation?: (request: RealtimeEvaluationRequest) => Promise<RealtimeEvaluationResponse>;
 }
 
 function buildRequest(encounter: EmrEncounterContext): RealtimeEvaluationRequest {
@@ -33,7 +34,10 @@ function buildRequest(encounter: EmrEncounterContext): RealtimeEvaluationRequest
 
 const DEFAULT_ASSISTIVE_NOTICE = '本结果仅用于辅助诊断质量评估，不替代医生临床判断。';
 
-export function DoctorEvaluationPanel({ encounter, onRunEvaluation }: DoctorEvaluationPanelProps) {
+export function DoctorEvaluationPanel({
+  encounter,
+  onRunEvaluation = runRealtimeEvaluation,
+}: DoctorEvaluationPanelProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'timeout' | 'error'>('idle');
   const [result, setResult] = useState<RealtimeEvaluationResponse | null>(null);
 

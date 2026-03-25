@@ -1,6 +1,7 @@
 import type { EmrEncounterContext } from '../lib/emr-encounter-contracts';
 import type { RealtimeEvaluationRequest, RealtimeEvaluationResponse } from '../lib/realtime-evaluation-contracts';
 import { DoctorEvaluationPanel } from '../components/doctor-evaluation-panel';
+import { runRealtimeEvaluation } from '../lib/realtime-evaluation-api';
 
 export interface DoctorEvaluationPageProps {
   encounter: EmrEncounterContext;
@@ -16,22 +17,7 @@ function renderSectionPreview(label: string, value?: string) {
   );
 }
 
-const defaultRunEvaluation = async (): Promise<RealtimeEvaluationResponse> => ({
-  evaluation_id: 'pending-host-integration',
-  status: 'failed',
-  elapsed_ms: 0,
-  assistive_notice: '本结果仅用于辅助诊断质量评估，不替代医生临床判断。',
-  basis_completeness: {
-    verdict: 'incomplete',
-    summary: '当前页面尚未接入后端诊鉴执行能力。',
-    missing_items: [],
-  },
-  potential_missing_diagnoses: [],
-  rationale: ['请在后续计划中接入后端诊鉴服务。'],
-  suggestions: ['确认宿主已注入 onRunEvaluation(request) 回调。'],
-});
-
-export function DoctorEvaluationPage({ encounter, onRunEvaluation = defaultRunEvaluation }: DoctorEvaluationPageProps) {
+export function DoctorEvaluationPage({ encounter, onRunEvaluation = runRealtimeEvaluation }: DoctorEvaluationPageProps) {
   return (
     <main className="dashboard-page">
       <header className="dashboard-page__hero">

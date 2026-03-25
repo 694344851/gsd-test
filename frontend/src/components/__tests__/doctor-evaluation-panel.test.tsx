@@ -121,6 +121,29 @@ describe('DoctorEvaluationPanel', () => {
     expect(screen.getByText('本次诊鉴在时限内未返回完整结果，请医生决定是否稍后重试。')).toBeInTheDocument();
   });
 
+  it('renders the failed state from a normalized backend payload', async () => {
+    const onRunEvaluation = vi.fn().mockResolvedValue({
+      ...successResponse,
+      status: 'failed',
+      elapsed_ms: 1300,
+      basis_completeness: {
+        verdict: 'incomplete',
+        summary: '本次诊鉴执行失败，暂未生成可供参考的结构化评估结果。',
+        missing_items: [],
+      },
+      potential_missing_diagnoses: [],
+      rationale: [],
+      suggestions: ['请核对病历内容后重试，如仍失败请联系支持人员。'],
+    });
+
+    render(<DoctorEvaluationPanel encounter={encounterFixture} onRunEvaluation={onRunEvaluation} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '诊鉴' }));
+
+    expect(await screen.findByRole('heading', { name: '诊鉴执行失败' })).toBeInTheDocument();
+    expect(screen.getByText('本次诊鉴未能完成，请核对病历内容后再试。')).toBeInTheDocument();
+  });
+
   it('renders the error state when the callback rejects', async () => {
     const onRunEvaluation = vi.fn().mockRejectedValue(new Error('boom'));
 
