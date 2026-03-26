@@ -1,0 +1,17 @@
+[project]
+name = "outpatient-quality-agent"
+version = "0.1.0"
+description = "Outpatient quality dashboard and realtime evaluation backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.135.2",
+    "uvicorn[standard]>=0.42.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+]
+
+[tool.uv]
+package = false

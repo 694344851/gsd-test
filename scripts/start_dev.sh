@@ -55,6 +55,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 require_command python3
+require_command uv
 require_command npm
 require_command lsof
 
@@ -80,13 +81,14 @@ fi
 
 export DATABASE_URL
 export DASHBOARD_API_PORT="$API_PORT"
+export UV_CACHE_DIR="${UV_CACHE_DIR:-$ROOT_DIR/.uv-cache}"
 export PATH="$ROOT_DIR/bin:$PATH"
 export PYTHONPATH="$ROOT_DIR${PYTHONPATH:+:$PYTHONPATH}"
 
 echo "Starting dashboard API on http://127.0.0.1:$API_PORT"
 (
   cd "$ROOT_DIR"
-  python3 scripts/run_dashboard_api.py
+  uv run python3 scripts/run_dashboard_api.py
 ) &
 API_PID="$!"
 
