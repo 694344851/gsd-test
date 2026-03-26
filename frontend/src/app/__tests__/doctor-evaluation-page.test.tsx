@@ -45,4 +45,15 @@ describe('DoctorEvaluationPage', () => {
     expect(screen.getByRole('button', { name: '诊鉴' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '等待触发后返回结构化辅助评估' })).toBeInTheDocument();
   });
+
+  it('blocks manager viewers from doctor-side evaluation access', () => {
+    render(
+      <DoctorEvaluationPage
+        encounter={encounterFixture}
+        viewerContext={{ viewer_role: 'manager', viewer_id: 'manager-001' }}
+      />,
+    );
+
+    expect(screen.getByText('当前角色无权访问医生端诊鉴')).toBeInTheDocument();
+  });
 });

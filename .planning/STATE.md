@@ -2,37 +2,37 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-03-25T09:55:43.129Z"
+status: Milestone v1.0 archived
+stopped_at: Completed milestone archive
+last_updated: "2026-03-26T02:40:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 5
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** 在不替代临床决策的前提下，稳定地发现门诊诊断依据不完整和潜在缺漏诊断问题，并把结果转化为可操作的改进建议。
-**Current focus:** Phase 04 — realtime-evaluation-workflow
+**Current focus:** Define the next milestone
 
 ## Current Position
 
-Phase: 04 (realtime-evaluation-workflow) — EXECUTING
-Plan: 3 of 3
+Milestone: v1.0 — SHIPPED
+Next step: `$gsd-new-milestone`
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 8
+- Total plans completed: 14
 - Average duration: 8 min
-- Total execution time: 0.4 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
@@ -44,7 +44,7 @@ Plan: 3 of 3
 
 **Recent Trend:**
 
-- Last 5 plans: 02-dashboard-overview-01, 02-dashboard-overview-02, 02-dashboard-overview-03, 03-quality-distribution-insights-01, 03-quality-distribution-insights-02
+- Last 5 plans: 04-realtime-evaluation-workflow-02, 04-realtime-evaluation-workflow-03, 05-drilldown-and-release-hardening-01, 05-drilldown-and-release-hardening-02, 05-drilldown-and-release-hardening-03
 - Trend: Stable
 
 | Phase 01-data-foundation P01 | 25 min | 2 tasks | 11 files |
@@ -58,6 +58,9 @@ Plan: 3 of 3
 | Phase 04-realtime-evaluation-workflow P01 | 7min | 2 tasks | 11 files |
 | Phase 04 P02 | 3min | 2 tasks | 11 files |
 | Phase 04 P03 | 6 min | 2 tasks | 12 files |
+| Phase 05 P01 | manual session | 2 tasks | 12 files |
+| Phase 05 P02 | manual session | 2 tasks | 13 files |
+| Phase 05 P03 | manual session | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -83,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Phase 04-03 persists realtime evaluations in standalone summary/detail tables so doctor-side requests avoid dashboard refresh work.
 - [Phase 04]: Phase 04-03 exposes analytics reuse through a lightweight helper over analytics.realtime_evaluation_summary joined with detail payloads.
 - [Phase 04]: Phase 04-03 surfaces evaluation_id in the doctor panel so visible results map to durable backend records.
+- [Phase 05]: Manager drilldown is URL-addressable and reuses homepage filter semantics instead of maintaining hidden local state.
+- [Phase 05]: Drilldown JSON and CSV export both reuse the same canonical problem-case query helper to avoid row-set drift.
+- [Phase 05]: Viewer role enforcement is server-first via `X-Viewer-Role` / `X-Viewer-Id`, with frontend gating only as supplemental UX.
 
 ### Pending Todos
 
@@ -90,11 +96,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Need to validate actual integration method with the existing outpatient EMR system
 - Need to confirm the exact formula and calibration source for the overall diagnosis quality index
+- Need to define next milestone scope before resuming roadmap work
 
 ## Session Continuity
 
-Last session: 2026-03-25T09:55:28.423Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-26T02:40:00.000Z
+Stopped at: Completed milestone archive
 Resume file: None

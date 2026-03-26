@@ -1,93 +1,95 @@
 # Phase 5: Drilldown and Release Hardening - Research
 
 **Researched:** 2026-03-25
-**Domain:** 管理端下钻明细、病例导出、角色权限、上线前验收
+**Domain:** Manager-side drilldown, case export, role boundary enforcement, and release hardening on top of the existing React dashboard, Python HTTP server, and PostgreSQL analytics layer
 **Confidence:** MEDIUM
 
+<user_constraints>
 ## User Constraints
 
-No phase-specific `CONTEXT.md` exists for Phase 5.
+> No `05-CONTEXT.md` exists yet. The constraints below are the concrete planning inputs extracted from [`ROADMAP.md`](/home/healink/ykhl/test-ai/.planning/ROADMAP.md), [`REQUIREMENTS.md`](/home/healink/ykhl/test-ai/.planning/REQUIREMENTS.md), [`PROJECT.md`](/home/healink/ykhl/test-ai/.planning/PROJECT.md), Phase 4 artifacts, and [`门诊诊鉴首页-(全栈).md`](/home/healink/ykhl/test-ai/门诊诊鉴首页-(全栈).md).
 
-Locked decisions from current project artifacts:
-- Keep the existing greenfield repo shape instead of introducing a new platform.
-- Reuse the Phase 1 analytics semantic layer instead of recalculating metrics in the frontend.
-- Reuse Phase 4 persisted realtime evaluation records for downstream analytics/drilldown where possible.
-- Preserve the host-mounted doctor embed model; doctor UI does not take router ownership.
+### Locked Decisions
+- Phase 5 scope is limited to `OPER-01`, `OPER-02`, and `OPER-03`.
+- This phase must build on the current repo reality: React frontend in `frontend/src`, Python stdlib HTTP handlers in `src/api`, and PostgreSQL-driven analytics semantics under `sql/` and `src/domain/analytics/query_service.py`.
+- Managers must be able to drill down from the existing homepage signals into problem-case detail at department, doctor, or disease granularity.
+- Managers must be able to export the filtered problem-case list for manual review.
+- Doctor-side realtime evaluation and manager-side analytics must have clear role boundaries; Phase 5 should not introduce a full IAM platform.
+- Release hardening must cover key business flows and metrics continuity across Phases 1-4, not just new Phase 5 endpoints in isolation.
+- The likely plan split should remain the roadmap split:
+  1. drilldown detail page and filter linkage
+  2. case export/download
+  3. role boundary, UAT, and release readiness
 
-Claude's discretion:
-- Choose the management-side drilldown routing approach.
-- Choose the detail table implementation.
-- Choose the export delivery shape.
-- Define the release hardening checklist and validation coverage.
+### Claude's Discretion
+- Exact route/mount implementation details, as long as drilldown state is URL-addressable and does not force an unnecessary application rewrite.
+- Exact API contract split between detail query and export endpoints, as long as it keeps filters explicit and reusable.
+- Exact role propagation mechanism, as long as it is enforced server-side and visible in frontend bootstrap assumptions.
+- Exact validation split across Vitest, Python smoke scripts, SQL assertions, and manual UAT.
 
-Deferred ideas (out of scope):
-- Governance subscriptions/alerts (`GOV-*`)
-- Cross-campus benchmarking
-- Mobile/native clients
-- Non-outpatient scenarios
+### Deferred Ideas (OUT OF SCOPE)
+- SSO, RBAC admin consoles, permission self-service, or multi-tenant auth policy management.
+- Background export jobs, async notification delivery, or large-file export infrastructure.
+- Deep case-review workflow tooling beyond filtered view and download.
+- Governance alerts, subscriptions, and cross-institution benchmarking from v2.
+</user_constraints>
 
 <phase_requirements>
 ## Phase Requirements
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| OPER-01 | 管理者可以从首页下钻到科室、医生或病种维度的问题明细 | Add URL-backed management routes, scoped drilldown query contracts, and server-driven detail tables. |
-| OPER-02 | 管理者可以查看并下载问题病例，支持进一步人工复核 | Add backend CSV export endpoint that shares the same scoped query/filter contract as the detail page. |
-| OPER-03 | 系统需要对不同角色开放相应查询能力，避免医生和管理端权限混淆 | Add request-scoped server-side authorization gates and a role/resource matrix verified per endpoint. |
+| OPER-01 | 管理者可以从首页下钻到科室、医生或病种维度的问题明细 | Recommend homepage-to-detail navigation plus a typed drilldown query contract that reuses existing filter semantics |
+| OPER-02 | 管理者可以查看并下载问题病例，支持进一步人工复核 | Recommend a server-generated CSV export path sourced from the same filtered case query as the detail page |
+| OPER-03 | 系统需要对不同角色开放相应查询能力，避免医生和管理端权限混淆 | Recommend explicit viewer-role bootstrap context and server-side route gating instead of UI-only hiding |
 </phase_requirements>
-
-## Project Constraints (from CLAUDE.md)
-
-- 必须集成现有门诊病历系统，不能破坏原系统核心诊疗流程。
-- 实时诊鉴结果目标约 10 秒返回，医生侧链路不能被 Phase 5 改动拖慢。
-- 统计指标和环比口径必须一致，管理端下钻和导出必须复用同一套口径。
-- 后端设计需兼容当前 PostgreSQL 数据源或明确迁移方案。
-- 产品只能做辅助评估与提示，不能表达为自动诊断结论。
-- v1 优先完成门诊诊鉴首页和实时诊鉴主链路，复杂治理能力延后。
-- 文档/代码改动应通过 GSD workflow 产出，不要绕过规划工件直接修改仓库。
 
 ## Summary
 
-Phase 5 is the first phase that cuts across every layer already built: homepage filters and cards from Phases 2-3, persisted evaluation records from Phase 4, and the SQL semantic model from Phase 1. The planning risk is not the UI itself; it is keeping drilldown, export, and permission boundaries aligned so the visible rows, downloaded rows, and allowed rows are identical.
+Phase 5 should finish the manager workflow by extending the existing dashboard into a second view layer for filtered case detail, not by creating a separate operations product. The existing homepage already exposes the signals managers care about, and Phase 4 now persists realtime evaluation detail. The missing work is to connect those aggregate views to case-level records, expose an export path over the same filters, and prevent doctor and manager surfaces from crossing access boundaries.
 
-The current codebase has no router, no authorization layer, and no paged detail endpoints. It does already have two useful foundations: a shared `DashboardFilters` contract in the frontend and a shared `AnalyticsFilters` contract plus lightweight HTTP handlers in the backend. Phase 5 should extend those seams instead of introducing a second query model.
+The safest repo-native design is a URL-driven manager drilldown shell backed by new GET endpoints on the current Python server. Drilldown requests should carry the current homepage filters plus a typed dimension target (`department`, `doctor`, `disease`) and selected value. Those selections need to survive refresh and copy-paste, so the detail view should be encoded in route/search state rather than hidden local component state. The backend should translate those filters into a case-level query over the Phase 1/3/4 tables, returning both a compact summary header and paged case rows. Export should reuse the same query builder and serialize CSV on the server so the frontend only initiates download rather than reconstructing data client-side.
 
-Release hardening should be planned as a real deliverable, not a cleanup footnote. The phase needs explicit acceptance for metric consistency, role boundary checks, and end-to-end management flows because broken access control and export mismatches are the highest-risk release defects here.
+Role handling should stay intentionally narrow. The repo still has no auth/session platform, so Phase 5 should assume the host/bootstrap layer provides a trusted `viewer_role` and identity context. That role must still be enforced in backend handlers; hiding links in the UI is not enough. This gives the phase a credible boundary without inventing infrastructure the codebase does not own.
 
-**Primary recommendation:** add management-only URL routing plus a server-driven drilldown/export API that reuses analytics filters and is guarded by a central authorization check on every request.
+**Primary recommendation:** Implement Phase 5 as a manager drilldown/detail workflow plus CSV export and request-level role gating, while treating bootstrap role context as an explicit host integration assumption and validating the full manager-to-doctor boundary with targeted smoke tests and human UAT.
+
+## Project Constraints (from AGENTS.md / PROJECT.md)
+
+- Use the GSD workflow artifacts; planning must stay inside `.planning/phases/05-drilldown-and-release-hardening/`.
+- Do not break the outpatient EMR core flow or the embedded doctor evaluation entrypoint from Phase 4.
+- Keep analytics semantics in the backend/query layer; frontend drilldown pages must not redefine metric formulas.
+- PostgreSQL compatibility remains required.
+- Clinical positioning remains assistive; manager analytics and doctor evaluation are different surfaces with different access rules.
 
 ## Standard Stack
 
 ### Core
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `react-router-dom` | `7.13.2` | 管理端 drilldown 路由、路由参数、查询串同步 | Current standard router for React web apps; gives deep-linkable detail pages instead of local component state only. |
-| `@tanstack/react-table` | `8.21.3` | 明细表格列定义、排序、分页状态 | Standard headless table layer for server-driven tables; avoids building table state logic by hand. |
-| Python `csv` stdlib | `3.12.3` local runtime | 服务端 CSV 导出 | Official standard library handles quoting/newlines correctly and avoids a frontend-only export mismatch. |
+| Library / Layer | Version | Purpose | Why Standard Here |
+|-----------------|---------|---------|-------------------|
+| React | 18.3.1 (repo-pinned) | Manager drilldown/detail UX | Existing dashboard shell and test stack already use React |
+| Vite | 5.4.10 (repo-pinned) | Existing frontend runtime and `/api` proxy | Already configured and sufficient for another manager view |
+| Vitest + Testing Library | 2.1.3 / 16.3.0 (repo-pinned) | Navigation, role-state, and download-trigger coverage | Existing frontend tests already cover dashboard and doctor flows |
+| Python stdlib HTTP server | repo-local | Drilldown, export, and role-gated route handling | Matches current API architecture; no second web framework required |
+| PostgreSQL semantic layer | repo-local | Case-level drilldown filtering and export source of truth | Existing aggregate semantics and Phase 4 detail persistence already live here |
 
 ### Supporting
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| Existing `react` | `18.3.1` repo-pinned | 管理端页面和组件 | Keep existing React baseline; Phase 5 does not need a framework migration. |
-| Existing `vite` | `5.4.10` repo-pinned | 前端 build/test toolchain | Keep current Vite app structure and add routing inside it. |
-| Web `URLSearchParams` | Platform API | drilldown filters 与 export 参数共用 | Use for deterministic URL serialization that matches current frontend query builders. |
+| Library / Layer | Version | Purpose | When to Use |
+|-----------------|---------|---------|-------------|
+| Existing analytics filter contracts | repo-local | Preserve time-range and comparison semantics across homepage and detail pages | Reuse rather than inventing a second filter model |
+| CSV serialization via Python stdlib | repo-local | Lightweight export responses | Sufficient because Phase 5 exports filtered review lists, not large async batches |
+| Query service helpers | repo-local | Shared SQL execution and row mapping | Extend `src/domain/analytics/query_service.py` for detail/export accessors |
+| Bootstrap role context contracts | new, repo-local | Explicit host-provided viewer role and identity | Required because there is no auth stack in-repo |
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| `react-router-dom` | manual view switching + `history.pushState` | Lower dependency count, but you would reimplement route matching, back/forward behavior, and drilldown deep links. |
-| `@tanstack/react-table` | custom HTML table state | Fine for static tables, but Phase 5 needs sortable/paged/filterable detail grids and will accumulate edge cases fast. |
-| Python `csv` export | browser-side CSV assembly (`Blob` + manual string escaping) | Works for tiny happy-path datasets, but increases correctness drift against backend filters and Excel quoting issues. |
+| Extend current dashboard app with a drilldown shell | Create a separate management frontend | Duplicates tooling and fragments filter logic |
+| Server-side CSV endpoint | Client-side CSV generation from rendered table data | Risks mismatch with backend filters and role enforcement |
+| Request-level `viewer_role` gate | Full auth provider / session middleware | Better long-term, but not credible inside current repo scope |
+| Reuse one case-query builder for detail and export | Build separate SQL paths for screen and export | Faster short-term, but creates semantic drift exactly where release hardening should reduce it |
 
-**Installation:**
-```bash
-npm --prefix frontend install react-router-dom@7.13.2 @tanstack/react-table@8.21.3
-```
-
-**Version verification:** verified on 2026-03-25 with `npm view`.
-- `react-router-dom@7.13.2` published 2026-03-23
-- `@tanstack/react-table@8.21.3` published 2025-04-14
-- `papaparse@5.5.3` is current as of 2025-05-19, but not recommended here because export should stay server-side
+**Installation:** No new runtime dependency is required for planning. Implementation can stay on the current frontend/backend stack.
 
 ## Architecture Patterns
 
@@ -95,332 +97,132 @@ npm --prefix frontend install react-router-dom@7.13.2 @tanstack/react-table@8.21
 ```text
 frontend/src/
 ├── app/
-│   ├── dashboard-app.tsx          # BrowserRouter shell for management UI
 │   ├── dashboard-overview-page.tsx
-│   └── drilldown-page.tsx         # detail page for department/doctor/disease scopes
+│   ├── manager-drilldown-page.tsx          # New manager detail shell
+│   └── doctor-evaluation-page.tsx
 ├── components/
-│   └── drilldown/
-│       ├── issue-case-table.tsx
-│       ├── drilldown-header.tsx
-│       └── drilldown-filters.tsx
-└── lib/
-    ├── drilldown-api.ts
-    ├── drilldown-contracts.ts
-    └── auth-context.ts
+│   ├── distribution-section.tsx            # Add click-through affordances
+│   ├── disease-insights-section.tsx        # Add click-through affordances
+│   ├── manager-drilldown-header.tsx
+│   ├── problem-case-table.tsx
+│   ├── drilldown-filter-summary.tsx
+│   └── export-cases-button.tsx
+├── lib/
+│   ├── manager-drilldown-api.ts
+│   ├── manager-drilldown-contracts.ts
+│   ├── export-api.ts
+│   └── viewer-context-contracts.ts
+└── styles/
+    └── dashboard.css
 
-src/
-├── api/
-│   ├── authz.py                   # request role parsing + guard helpers
-│   ├── http_dashboard_drilldown.py
-│   └── http_dashboard_export.py
-├── api/analytics/
-│   └── drilldown.py               # response builders
-└── domain/analytics/
-    ├── drilldown_contracts.py
-    └── query_service.py           # add drilldown list/export queries
+src/api/
+├── http_dashboard_server.py
+├── http_dashboard_drilldown.py             # New GET detail endpoint handler
+├── http_dashboard_export.py                # New CSV export handler
+└── security/
+    ├── __init__.py
+    └── viewer_context.py                   # Parse and validate viewer role bootstrap data
+
+src/domain/analytics/
+├── contracts.py
+└── query_service.py                        # Add drilldown/export query helpers
 
 sql/
-└── migrations/
-    └── 006_phase5_drilldown.sql   # scoped detail function(s)
+├── tests/
+│   ├── oper_01_problem_drilldown.sql
+│   └── oper_02_case_export.sql
 ```
 
-### Pattern 1: URL-backed management drilldown
-**What:** Use real routes plus query-string filters so homepage state, detail page state, and export parameters are all serializable and shareable.
-**When to use:** Any manager-facing drilldown entry from overview cards, distribution bubbles, or disease cloud.
+### Pattern 1: Homepage Modules Emit Typed Drilldown Intents
+**What:** The homepage should not embed case tables inline. Existing distribution and disease modules should emit a typed intent that opens the manager drilldown view with current filters plus the selected department/doctor/disease dimension, and that intent must be representable in the URL.
+**When to use:** For all manager-side drilldown entrypoints.
 **Example:**
-```tsx
-// Source: React Router docs + current frontend query-builder pattern
-import { BrowserRouter, Route, Routes, useSearchParams } from 'react-router-dom';
-
-function DrilldownPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const scope = searchParams.get('scope') ?? 'department';
-  const entityId = searchParams.get('entity_id');
-
-  function updatePage(nextPage: number) {
-    const next = new URLSearchParams(searchParams);
-    next.set('page', String(nextPage));
-    setSearchParams(next);
-  }
-
-  return <section data-scope={scope} data-entity-id={entityId} />;
-}
-
-export function DashboardApp() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<DashboardOverviewPage />} />
-        <Route path="/drilldown" element={<DrilldownPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
+```ts
+export interface DrilldownIntent {
+  dimension: 'department' | 'doctor' | 'disease';
+  dimension_label: string;
+  dimension_value: string;
+  source_module: 'distribution' | 'disease_insights' | 'overview';
+  filters: DashboardFilters;
 }
 ```
 
-### Pattern 2: Server-driven detail table
-**What:** Let the backend own filtering, sorting, and pagination; let the frontend table own only view state.
-**When to use:** Issue-case detail lists that can grow beyond a single visible page or be exported.
-**Example:**
-```tsx
-// Source: TanStack Table pagination/column docs, adapted for this repo
-import { getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
-
-const columns: ColumnDef<IssueCaseRow>[] = [
-  { accessorKey: 'encounter_id', header: '就诊号' },
-  { accessorKey: 'doctor_name', header: '医生' },
-  { accessorKey: 'issue_type', header: '问题类型' },
-  { accessorKey: 'triggered_at', header: '评估时间' },
-];
-
-const table = useReactTable({
-  data: rows,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  manualPagination: true,
-  rowCount: totalCount,
-  state: { pagination },
-});
-```
-
-### Pattern 3: Shared query contract for page and export
-**What:** The detail page API and export API should accept the same scope/filter/sort contract; export adds only file-format concerns.
-**When to use:** Every exported dataset that originates from a visible manager drilldown.
+### Pattern 2: Use One Canonical Case Query for Screen and Export
+**What:** Build one backend query helper that resolves the filtered problem-case rows. The detail endpoint returns JSON; the export endpoint serializes those rows to CSV.
+**When to use:** Always. This is the cleanest way to guarantee export matches what the manager reviewed on screen.
 **Example:**
 ```python
-# Source: current AnalyticsFilters pattern + Python csv docs
-@dataclass(slots=True)
-class DrilldownFilters(AnalyticsFilters):
-    scope: Literal["department", "doctor", "disease"]
-    entity_id: str
-    issue_kind: Literal["basis_incomplete", "missing_diagnosis", "all"] = "all"
-    page: int = 1
-    page_size: int = 50
-    sort_by: str = "triggered_at"
-    sort_order: Literal["asc", "desc"] = "desc"
+def get_problem_case_rows(filters: DrilldownFilters, *, executor=execute_query) -> list[ProblemCaseRow]:
+    sql = """
+      select
+        encounter_id,
+        patient_name,
+        department_name,
+        doctor_name,
+        primary_diagnosis_name,
+        evaluation_status,
+        diagnosis_basis_incomplete,
+        missing_diagnosis,
+        triggered_at
+      from analytics_problem_case_detail
+      where triggered_at between $1 and $2
+        and ($3::text is null or department_name = $3)
+        and ($4::text is null or doctor_name = $4)
+        and ($5::text is null or primary_diagnosis_name = $5)
+      order by triggered_at desc, encounter_id desc
+    """
 ```
 
-### Pattern 4: Central request authorization
-**What:** Parse caller identity/role once per request and enforce permission checks in a shared helper before invoking analytics queries or export.
-**When to use:** All manager analytics endpoints and all doctor-side record lookups.
+### Pattern 3: Server-Side Role Gate, Frontend Role-Aware Rendering
+**What:** The frontend may hide manager-only entrypoints for doctors, but the backend must still reject manager drilldown/export requests unless `viewer_role=manager` is present and valid.
+**When to use:** For every Phase 5 route.
 **Example:**
 ```python
-# Source: OWASP Authorization Cheat Sheet principles, adapted to current http.server stack
-def require_role(request_role: str | None, allowed: set[str]) -> None:
-    if request_role not in allowed:
-        raise PermissionError("forbidden")
-
-def handle_export(path: str, headers: Mapping[str, str]) -> tuple[bytes, dict[str, str], int]:
-    require_role(headers.get("X-User-Role"), {"manager", "quality_admin"})
-    filters = parse_drilldown_filters(path)
-    return build_export_response(filters)
+viewer = read_viewer_context(headers=self.headers)
+if viewer.role != "manager":
+    return write_json_error(handler, status=403, code="forbidden", message="manager access required")
 ```
 
-### Anti-Patterns to Avoid
-- **Frontend-only permissions:** hiding buttons is not authorization; the backend must reject unauthorized requests.
-- **Separate export query logic:** if export SQL differs from page SQL, users will download rows they never saw.
-- **Client-side full-data tables:** loading entire drilldown datasets into the browser will break pagination, export parity, and memory usage.
-- **Adding router ownership to doctor embed:** the doctor-side embedded page is intentionally host-mounted; keep routing scoped to management UI.
-- **Recomputing issue semantics from raw payload JSON:** reuse persisted Phase 4 summary/detail fields and SQL semantics instead.
+### Pattern 4: Keep Doctor and Manager Mounts Separate
+**What:** Continue treating the doctor panel and manager dashboard as separate mounts or explicit entry shells, even if they share contracts and styling tokens. Manager drilldown can add URL-driven navigation inside the dashboard surface without bleeding into the doctor embed surface.
+**When to use:** Always. This avoids accidental leakage of manager UI into the EMR-embedded doctor surface.
+**Example:** `mountDoctorEvaluationEmbed(...)` remains doctor-only; manager drilldown is reached from the dashboard shell or a dedicated manager mount function.
 
-## Don't Hand-Roll
+### Pattern 5: Release Hardening Means Cross-Phase Business Verification
+**What:** Phase 5 should verify more than new feature existence. It should explicitly regression-check that Phase 3 homepage filters still align with Phase 5 detail rows and that Phase 4 persisted evaluations remain queryable in manager drilldown/export.
+**When to use:** During plan 05-03 and before human verification.
+**Example:** A smoke test can seed a persisted Phase 4 evaluation row and assert it appears in the manager drilldown list and CSV export under the expected filters.
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Management routing | ad hoc `useState` page switching | `react-router-dom` | Back/forward navigation, shareable URLs, and route params are already solved. |
-| Detail table state | custom sorting/pagination reducer | `@tanstack/react-table` + server-driven data | Table state looks simple until sorting, empty states, and column metadata pile up. |
-| CSV escaping | string join with commas/newlines | Python `csv.DictWriter` | Excel/newline/quote handling is easy to get wrong. |
-| Authorization | per-handler inline role checks scattered in code | centralized `authz.py` helper + matrix tests | Reduces bypass bugs and keeps role rules auditable. |
-| Export parity | duplicate SQL for “download” | shared drilldown query contract | Prevents visible rows and exported rows from diverging. |
+## Implementation Notes from Current Codebase
 
-**Key insight:** the dangerous custom work in this phase is not visual polish; it is state synchronization. Use one filter contract, one query path, and one authorization gate.
-
-## Common Pitfalls
-
-### Pitfall 1: Losing filter context during drilldown
-**What goes wrong:** User clicks from homepage into a detail page but loses time range or selected entity filters.
-**Why it happens:** Homepage state is stored only in React component memory.
-**How to avoid:** Serialize drilldown state into the URL and derive page fetches from query params.
-**Warning signs:** Refreshing the detail page changes the dataset or resets the scope.
-
-### Pitfall 2: Exported rows do not match visible rows
-**What goes wrong:** The CSV contains more or fewer cases than the user sees in the table.
-**Why it happens:** Export endpoint rebuilds filters separately or omits issue/sort/scope parameters.
-**How to avoid:** Export endpoint should consume the same parsed filter object as the detail list endpoint.
-**Warning signs:** Manual spot-check on a small filter set returns different counts between table and CSV.
-
-### Pitfall 3: Horizontal privilege escalation
-**What goes wrong:** A doctor or lower-privilege user can call management endpoints directly.
-**Why it happens:** Permissions are enforced only in the frontend, or handlers trust client-supplied identifiers.
-**How to avoid:** Enforce deny-by-default authorization in every request path and test forbidden responses explicitly.
-**Warning signs:** Any curl request with a forged role/header can access manager data.
-
-### Pitfall 4: Export blocks request threads or exhausts memory
-**What goes wrong:** Large exports freeze the lightweight HTTP server or build giant in-memory strings.
-**Why it happens:** Entire result sets are materialized before writing, with no practical row cap or timeout plan.
-**How to avoid:** Set explicit row limits for v1 exports and stream/write rows incrementally through `csv`.
-**Warning signs:** Export latency grows linearly with row count and timeouts appear in manual testing.
-
-### Pitfall 5: “Release hardening” becomes undocumented manual intuition
-**What goes wrong:** Phase code ships, but metric checks, role matrix checks, and critical path UAT are never captured.
-**Why it happens:** Release readiness is left as generic QA instead of explicit acceptance work.
-**How to avoid:** Plan a concrete release checklist tied to OPER requirements and existing metric semantics.
-**Warning signs:** No single artifact answers “what exactly was validated before go-live?”
-
-## Code Examples
-
-Verified patterns from official sources:
-
-### Shared CSV writer for export
-```python
-# Source: https://docs.python.org/3/library/csv.html
-import csv
-import io
-
-def build_csv(rows: list[dict[str, object]]) -> str:
-    output = io.StringIO(newline="")
-    writer = csv.DictWriter(
-        output,
-        fieldnames=["encounter_id", "case_id", "doctor_name", "issue_type", "triggered_at"],
-        quoting=csv.QUOTE_MINIMAL,
-    )
-    writer.writeheader()
-    writer.writerows(rows)
-    return output.getvalue()
-```
-
-### Attachment response for browser download
-```python
-# Source: MDN Content-Disposition guidance, adapted to current http.server server
-filename = "problem-cases-2026-03-25.csv"
-headers = {
-    "Content-Type": "text/csv; charset=utf-8",
-    "Content-Disposition": f'attachment; filename="{filename}"',
-}
-```
-
-### Drilldown link from an overview module
-```tsx
-// Source: React Router docs, adapted for this repo
-import { Link, createSearchParams } from 'react-router-dom';
-
-<Link
-  to={{
-    pathname: '/drilldown',
-    search: createSearchParams({
-      scope: 'department',
-      entity_id: departmentId,
-      issue_kind: 'basis_incomplete',
-      range_key: filters.rangeKey,
-      as_of_date: filters.asOfDate,
-    }).toString(),
-  }}
->
-  查看问题明细
-</Link>
-```
-
-## State of the Art
-
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Local component state controls all navigation | URL-backed routing/search params | Modern React Router data model | Deep links, refresh safety, and browser navigation become first-class. |
-| Client-rendered “simple table” without structure | Headless table libraries with server-driven pagination | Common by TanStack Table v8 era | Better control over large datasets without UI framework lock-in. |
-| Browser-side CSV assembly | Server-generated CSV with attachment headers | Long-standing best practice, reinforced by export correctness needs | Keeps export logic aligned with backend filters and quoting rules. |
-| Role checks implied by UI entry points | Explicit deny-by-default authorization on every request | OWASP authorization guidance | Prevents broken access control from direct endpoint access. |
-
-**Deprecated/outdated:**
-- Frontend-only RBAC assumptions: insufficient for manager-only data.
-- Separate “display query” and “export query”: too error-prone for regulated quality review workflows.
-
-## Open Questions
-
-1. **What exact role/identity payload will the host system provide to this app?**
-   - What we know: PRD distinguishes doctors from management users, and Phase 5 requires clear permission boundaries.
-   - What's unclear: exact transport mechanism (header, cookie, reverse-proxy injection, signed token) is not defined in repo artifacts.
-   - Recommendation: lock this before planning 05-03; authorization tasks depend on it.
-
-2. **What is the v1 export size limit and acceptable latency?**
-   - What we know: users need downloadable problem cases for manual review.
-   - What's unclear: whether export is expected to support full-period dumps or only scoped current filter results with a practical cap.
-   - Recommendation: set a row cap and response-time target during planning to avoid accidental long-running exports.
-
-3. **What exact columns must appear in drilldown and export?**
-   - What we know: problem case review needs department/doctor/disease scope plus case-level quality findings.
-   - What's unclear: whether reviewers need patient identifiers, encounter snapshot excerpts, rationale text, or only operational IDs.
-   - Recommendation: define a canonical review dataset once and reuse it for both table columns and CSV headers.
-
-## Environment Availability
-
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Node.js | frontend build/tests, repo-local PG bridge | ✓ | `v24.14.0` | — |
-| npm | frontend dependency install/tests | ✓ | `11.9.0` | — |
-| Python 3 | backend handlers/export implementation | ✓ | `3.12.3` | — |
-| PostgreSQL CLI (`psql`) | manual query verification | ✓ | `16.13` | use repo-local `node scripts/query-pg.mjs` |
-| `pytest` | backend unit test framework | ✗ | — | add `pytest`, or use temporary Python smoke scripts |
-| `DATABASE_URL` env | live analytics/export queries | ✗ | — | executor injection/manual fixtures only |
-
-**Missing dependencies with no fallback:**
-- None for planning itself. Live backend verification will need a real `DATABASE_URL`.
-
-**Missing dependencies with fallback:**
-- `pytest` missing; frontend can still be validated with Vitest and backend can use smoke scripts until Wave 0 installs it.
+- `frontend/src/app/dashboard-overview-page.tsx` is still a single-page dashboard shell with no router; Phase 5 should introduce the minimum URL-driven navigation needed for drilldown refresh/share/export fidelity, not leave drilldown hidden in ephemeral local state.
+- `frontend/src/components/distribution-section.tsx` and `frontend/src/components/disease-insights-section.tsx` already own the most obvious drilldown entrypoints, but neither currently emits click-through navigation.
+- `frontend/src/lib/analytics-filters.ts` already defines the canonical time-range/filter model; Phase 5 should reuse it for manager drilldown requests.
+- `src/api/http_dashboard_server.py` already dispatches existing analytics GET routes and the Phase 4 realtime POST route, so new drilldown/export handlers fit naturally there.
+- `src/domain/analytics/query_service.py` already exposes aggregate analytics queries and `get_persisted_realtime_evaluation(...)`; this is the correct extension point for case-level drilldown/export helpers.
+- `sql/migrations/005_phase4_realtime_evaluation.sql` persists structured detail that Phase 5 can reuse; new drilldown/export work should prefer derived queries over schema churn unless a real gap appears.
 
 ## Validation Architecture
 
-### Test Framework
-| Property | Value |
-|----------|-------|
-| Framework | `Vitest 2.1.3` for frontend; backend currently has ad hoc Python smoke scripts, not a formal test runner |
-| Config file | `frontend/vitest.config.ts` |
-| Quick run command | `npm --prefix frontend test` |
-| Full suite command | `npm --prefix frontend test` plus targeted Python smoke scripts such as `python3 src/domain/analytics/reuse_smoke.py` |
+Phase 5 needs both feature validation and regression validation. The highest-risk failure mode is not “button missing”; it is semantic drift between homepage aggregate filters, detail rows, CSV export, and role boundaries. Validation should therefore pair frontend tests with backend/query smoke tests and SQL assertions over a shared fixture set.
 
-### Phase Requirements → Test Map
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| OPER-01 | 首页入口可下钻到科室/医生/病种问题明细，并保留筛选条件 | component + route integration | `npm --prefix frontend test -- src/app/__tests__/drilldown-page.test.tsx` | ❌ Wave 0 |
-| OPER-02 | 明细页可下载与当前筛选一致的问题病例 CSV | backend handler/unit + frontend trigger | `python3 -m pytest tests/test_dashboard_export.py -q` | ❌ Wave 0 |
-| OPER-03 | 医生端与管理端访问边界明确，未授权请求返回 forbidden | backend auth unit + manual smoke | `python3 -m pytest tests/test_authz.py -q` | ❌ Wave 0 |
+Recommended validation split:
 
-### Sampling Rate
-- **Per task commit:** `npm --prefix frontend test`
-- **Per wave merge:** `npm --prefix frontend test` plus backend smoke/auth/export checks
-- **Phase gate:** role matrix checks + export parity checks + critical management/doctor journeys green before `/gsd:verify-work`
+- `05-01` drilldown: Vitest coverage for homepage click-through and detail-shell rendering, plus SQL/Python checks that the selected dimension and filters resolve the expected case rows.
+- `05-02` export: Python smoke coverage for CSV response shape and filename contract, plus SQL assertions that exported rows match the same filtered case set used by drilldown.
+- `05-03` role/release hardening: smoke coverage for 403 behavior on manager-only routes, regression checks that doctor embed still works, and human UAT for real-world manager review/download flow.
 
-### Wave 0 Gaps
-- [ ] `frontend/src/app/__tests__/drilldown-page.test.tsx` — covers route parsing, empty state, and filter carryover for `OPER-01`
-- [ ] `frontend/src/components/__tests__/issue-case-table.test.tsx` — covers table pagination/sort state for `OPER-01`
-- [ ] `tests/test_dashboard_export.py` — covers CSV headers, filter parity, and attachment response for `OPER-02`
-- [ ] `tests/test_authz.py` — covers allow/deny matrix for `OPER-03`
-- [ ] Framework install: `python3 -m pip install pytest` — backend test runner missing
+Wave 0 should reserve the following test artifacts before implementation:
 
-## Sources
+- `frontend/src/app/__tests__/manager-drilldown-page.test.tsx`
+- `frontend/src/components/__tests__/distribution-section.test.tsx` updates for click-through behavior
+- `frontend/src/components/__tests__/disease-insights-section.test.tsx` updates for click-through behavior
+- `src/api/analytics/drilldown_smoke.py`
+- `src/api/security/role_access_smoke.py`
+- `sql/tests/oper_01_problem_drilldown.sql`
+- `sql/tests/oper_02_case_export.sql`
 
-### Primary (HIGH confidence)
-- `npm view react-router-dom version time --json` (queried 2026-03-25) - current package version and publish date
-- `npm view @tanstack/react-table version time --json` (queried 2026-03-25) - current package version and publish date
-- `https://reactrouter.com/en/en/v6/start/concepts` - `BrowserRouter`, nested routes, `useSearchParams` concepts
-- `https://tanstack.com/table/latest/docs/guide/pagination` - manual/server pagination pattern
-- `https://tanstack.com/table/latest/docs/guide/column-defs` - headless column definition pattern
-- `https://docs.python.org/3/library/csv.html` - CSV writer/DictWriter behavior and newline guidance
-- `https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Disposition` - download attachment header behavior
-- `https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html` - least privilege, deny by default, validate every request
+Manual validation should stay limited to the gaps automation cannot credibly cover in-repo:
 
-### Secondary (MEDIUM confidence)
-- Repo sources under `frontend/src/lib/*.ts`, `src/api/http_dashboard_*.py`, and `src/domain/analytics/query_service.py` - existing filter/query/handler seams this phase should extend
-- `门诊诊鉴首页-(全栈).md` - product scenarios for management drilldown/export
-
-### Tertiary (LOW confidence)
-- None
-
-## Metadata
-
-**Confidence breakdown:**
-- Standard stack: HIGH - package versions were verified live and the chosen libraries solve the exact missing concerns in the current stack.
-- Architecture: MEDIUM - strongly grounded in current repo seams, but exact auth transport from the host system is still unknown.
-- Pitfalls: HIGH - backed by OWASP guidance plus clear mismatch risks visible in the current architecture.
-
-**Research date:** 2026-03-25
-**Valid until:** 2026-04-24
+- Manager confirms the drilldown screen and export file support actual manual review workflow.
+- Real host/bootstrap integration confirms doctor and manager surfaces receive the correct `viewer_role` context and do not cross-link incorrectly.

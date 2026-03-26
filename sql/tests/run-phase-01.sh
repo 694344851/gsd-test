@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -ne 1 ]; then
-  echo "Usage: $0 {data_01_mapping|data_02_aggregates|data_03_status_split|dash_01_default_window|dash_02_overview_cards|dist_01_department_distribution|dise_01_disease_insights|eval_01_persistence_chain}" >&2
+  echo "Usage: $0 {data_01_mapping|data_02_aggregates|data_03_status_split|dash_01_default_window|dash_02_overview_cards|dist_01_department_distribution|dise_01_disease_insights|eval_01_persistence_chain|oper_01_problem_drilldown|oper_02_case_export}" >&2
   exit 1
 fi
 
@@ -38,6 +38,12 @@ case "$TEST_NAME" in
     ;;
   eval_01_persistence_chain)
     ASSERTION_FILE="sql/tests/eval_01_persistence_chain.sql"
+    ;;
+  oper_01_problem_drilldown)
+    ASSERTION_FILE="sql/tests/oper_01_problem_drilldown.sql"
+    ;;
+  oper_02_case_export)
+    ASSERTION_FILE="sql/tests/oper_02_case_export.sql"
     ;;
   *)
     echo "Unknown test: $TEST_NAME" >&2

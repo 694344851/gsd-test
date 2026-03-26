@@ -82,6 +82,7 @@ class DepartmentTypeOption:
 
 
 DiseaseSeverityBand = Literal["top_20", "top_50", "top_70", "tail"]
+ProblemCaseDimension = Literal["department", "doctor", "disease"]
 
 
 @dataclass(slots=True)
@@ -93,6 +94,29 @@ class DiseaseInsightRow:
     missing_diagnosis_count: int
     severity_ratio: float
     severity_band: DiseaseSeverityBand
+
+
+@dataclass(slots=True)
+class ProblemCaseRow:
+    encounter_id: str
+    patient_name: str
+    department_id: str
+    department_name: str
+    doctor_id: str
+    doctor_name: str
+    disease_id: str | None
+    primary_diagnosis_name: str
+    evaluation_status: Literal["success", "timeout", "failed"]
+    diagnosis_basis_incomplete: bool
+    missing_diagnosis: bool
+    triggered_at: str
+
+
+@dataclass(slots=True)
+class ProblemCaseSummary:
+    total_case_count: int
+    diagnosis_basis_incomplete_count: int
+    missing_diagnosis_count: int
 
 
 @dataclass(slots=True)

@@ -1,7 +1,7 @@
 ---
 phase: 02
 slug: dashboard-overview
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-03-25
@@ -112,6 +112,7 @@ Copy rules:
 - Toolbar pattern: use quick-range chips plus a custom-date entry point in the same row; quick ranges are the primary path, custom date is secondary.
 - Toolbar state is single-source: one selected range drives overview cards, trend chart, absolute date label, and chart grain. No module may hold its own divergent time state.
 - Default load state: selected range is `近三个月`, cutoff is `昨日`, and the page renders 13 weekly buckets inherited from the Phase 1 semantic layer.
+- Primary focal point: first-screen visual priority belongs to the five-card summary band; users should scan the current KPI state before reading the trend chart below.
 - Date presentation: show explicit start and end dates in the toolbar summary, never only the relative label.
 - Overview card layout: render exactly five cards in this order: 门诊量, 评估病例数, 诊断依据不完整比例, 缺失诊断比例, 整体诊断质量指数.
 - Card content hierarchy: primary value first, delta row second. Do not add tertiary descriptive copy inside the card.
@@ -137,11 +138,11 @@ Copy rules:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-03-25

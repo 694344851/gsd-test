@@ -16,6 +16,9 @@ from .contracts import (
     EvaluationSplitRow,
     OverviewSummaryRow,
     PersistedRealtimeEvaluationRow,
+    ProblemCaseDimension,
+    ProblemCaseRow,
+    ProblemCaseSummary,
     TrendSeriesRow,
 )
 
@@ -445,6 +448,109 @@ def get_persisted_realtime_evaluation(
         rationale=[str(item) for item in _coerce_json_list(row.get("rationale")) if item is not None],
         suggestions=[str(item) for item in _coerce_json_list(row.get("suggestions")) if item is not None],
         potential_missing_diagnoses=missing,
+    )
+
+
+def get_problem_case_rows(
+    filters: AnalyticsFilters,
+    *,
+    dimension: ProblemCaseDimension,
+    dimension_value: str,
+    executor: QueryExecutor | None = None,
+    connection_string: str | None = None,
+) -> list[ProblemCaseRow]:
+    rows = _executor(executor, connection_string).fetch_all(
+        """
+        with resolved as (
+          select *
+          from analytics.resolve_time_window($1, $2::date, $3::date, $4::date)
+        ),
+        ranked as (
+          select
+            evaluation.evaluation_id,
+            evaluation.encounter_id,
+            evaluation.case_id,
+            evaluation.status,
+            evaluation.diagnosis_basis_incomplete,
+            evaluation.missing_diagnosis,
+            evaluation.triggered_at,
+            row_number() over (
+              partition by evaluation.encounter_id
+              order by evaluation.triggered_at desc, evaluation.evaluation_id desc
+            ) as evaluation_rank
+          from analytics.realtime_evaluation_summary evaluation
+        )
+        select
+          encounter.encounter_id as "encounterId",
+          encounter.patient_id as "patientName",
+          encounter.department_id as "departmentId",
+          department.department_name as "departmentName",
+          encounter.doctor_id as "doctorId",
+          doctor.doctor_name as "doctorName",
+          encounter.disease_id as "diseaseId",
+          coalesce(disease.disease_name, encounter.disease_id, '未记录') as "primaryDiagnosisName",
+          ranked.status as "evaluationStatus",
+          ranked.diagnosis_basis_incomplete as "diagnosisBasisIncomplete",
+          ranked.missing_diagnosis as "missingDiagnosis",
+          ranked.triggered_at as "triggeredAt"
+        from analytics.fact_outpatient_encounter encounter
+        join analytics.dim_department department
+          on department.department_id = encounter.department_id
+        join analytics.dim_doctor doctor
+          on doctor.doctor_id = encounter.doctor_id
+        left join analytics.dim_disease disease
+          on disease.disease_id = encounter.disease_id
+        join ranked
+          on ranked.encounter_id = encounter.encounter_id
+         and ranked.evaluation_rank = 1
+        cross join resolved
+        where (encounter.encounter_at at time zone 'Asia/Shanghai')::date
+          between resolved.range_start_date and resolved.range_end_date
+          and (coalesce(cardinality($5::text[]), 0) = 0 or encounter.department_id = any($5::text[]))
+          and (coalesce(cardinality($6::text[]), 0) = 0 or encounter.department_type_id = any($6::text[]))
+          and (coalesce(cardinality($7::text[]), 0) = 0 or encounter.doctor_id = any($7::text[]))
+          and (coalesce(cardinality($8::text[]), 0) = 0 or encounter.disease_id = any($8::text[]))
+          and (
+            case
+              when $9 = 'department' then encounter.department_id = $10
+              when $9 = 'doctor' then encounter.doctor_id = $10
+              when $9 = 'disease' then encounter.disease_id = $10
+              else false
+            end
+          )
+          and (
+            ranked.diagnosis_basis_incomplete
+            or ranked.missing_diagnosis
+            or ranked.status in ('failed', 'timeout')
+          )
+        order by ranked.triggered_at desc, encounter.encounter_id desc
+        """.strip(),
+        [*_filter_params(filters), dimension, dimension_value],
+    )
+    return [
+        ProblemCaseRow(
+            encounter_id=str(row["encounterId"]),
+            patient_name=str(row["patientName"]),
+            department_id=str(row["departmentId"]),
+            department_name=str(row["departmentName"]),
+            doctor_id=str(row["doctorId"]),
+            doctor_name=str(row["doctorName"]),
+            disease_id=str(row["diseaseId"]) if row.get("diseaseId") is not None else None,
+            primary_diagnosis_name=str(row["primaryDiagnosisName"]),
+            evaluation_status=cast(Any, row["evaluationStatus"]),
+            diagnosis_basis_incomplete=bool(row["diagnosisBasisIncomplete"]),
+            missing_diagnosis=bool(row["missingDiagnosis"]),
+            triggered_at=str(row["triggeredAt"]),
+        )
+        for row in rows
+    ]
+
+
+def summarize_problem_case_rows(rows: list[ProblemCaseRow]) -> ProblemCaseSummary:
+    return ProblemCaseSummary(
+        total_case_count=len(rows),
+        diagnosis_basis_incomplete_count=sum(1 for row in rows if row.diagnosis_basis_incomplete),
+        missing_diagnosis_count=sum(1 for row in rows if row.missing_diagnosis),
     )
 
 

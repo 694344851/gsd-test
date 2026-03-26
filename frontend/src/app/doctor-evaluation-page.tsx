@@ -1,11 +1,13 @@
 import type { EmrEncounterContext } from '../lib/emr-encounter-contracts';
 import type { RealtimeEvaluationRequest, RealtimeEvaluationResponse } from '../lib/realtime-evaluation-contracts';
+import type { ViewerContext } from '../lib/viewer-context-contracts';
 import { DoctorEvaluationPanel } from '../components/doctor-evaluation-panel';
 import { runRealtimeEvaluation } from '../lib/realtime-evaluation-api';
 
 export interface DoctorEvaluationPageProps {
   encounter: EmrEncounterContext;
   onRunEvaluation?: (request: RealtimeEvaluationRequest) => Promise<RealtimeEvaluationResponse>;
+  viewerContext?: ViewerContext;
 }
 
 function renderSectionPreview(label: string, value?: string) {
@@ -17,7 +19,22 @@ function renderSectionPreview(label: string, value?: string) {
   );
 }
 
-export function DoctorEvaluationPage({ encounter, onRunEvaluation = runRealtimeEvaluation }: DoctorEvaluationPageProps) {
+export function DoctorEvaluationPage({
+  encounter,
+  onRunEvaluation = runRealtimeEvaluation,
+  viewerContext,
+}: DoctorEvaluationPageProps) {
+  if (viewerContext?.viewer_role === 'manager') {
+    return (
+      <main className="dashboard-page">
+        <div className="module-state">
+          <h2 className="module-state__heading">当前角色无权访问医生端诊鉴</h2>
+          <p className="module-state__body">请返回管理端分析首页继续查看聚合与下钻结果。</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="dashboard-page">
       <header className="dashboard-page__hero">
