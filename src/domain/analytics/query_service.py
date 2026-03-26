@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 from dataclasses import asdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Protocol, cast
 
@@ -87,6 +87,20 @@ def _coerce_int(value: Any) -> int | None:
     return int(value)
 
 
+def _coerce_date_string(value: Any) -> str:
+    if value is None:
+        raise ValueError("date value is required")
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value.isoformat()
+
+    text = str(value)
+    if "T" not in text:
+        return date.fromisoformat(text).isoformat()
+
+    normalized = text.replace("Z", "+00:00")
+    return datetime.fromisoformat(normalized).date().isoformat()
+
+
 def _coerce_json_dict(value: Any) -> dict[str, Any]:
     if isinstance(value, dict):
         return value
@@ -162,8 +176,8 @@ def get_overview_summary(
         diagnosis_basis_incomplete_rate_by_encounter=_coerce_float(row["diagnosisBasisIncompleteRateByEncounter"]),
         missing_diagnosis_rate_by_success=_coerce_float(row["missingDiagnosisRateBySuccess"]),
         missing_diagnosis_rate_by_encounter=_coerce_float(row["missingDiagnosisRateByEncounter"]),
-        range_start_date=str(row["rangeStartDate"]),
-        range_end_date=str(row["rangeEndDate"]),
+        range_start_date=_coerce_date_string(row["rangeStartDate"]),
+        range_end_date=_coerce_date_string(row["rangeEndDate"]),
         bucket_grain=cast(Any, row["bucketGrain"]),
     )
 
@@ -188,8 +202,8 @@ def get_previous_overview_summary(
         executor=executor,
         connection_string=connection_string,
     )
-    range_start_date = date.fromisoformat(str(resolved["rangeStartDate"]))
-    range_end_date = date.fromisoformat(str(resolved["rangeEndDate"]))
+    range_start_date = date.fromisoformat(_coerce_date_string(resolved["rangeStartDate"]))
+    range_end_date = date.fromisoformat(_coerce_date_string(resolved["rangeEndDate"]))
     window_length_days = (range_end_date - range_start_date).days + 1
     previous_end_date = range_start_date - timedelta(days=1)
     previous_start_date = previous_end_date - timedelta(days=window_length_days - 1)
@@ -238,11 +252,11 @@ def get_trend_series(
             diagnosis_basis_incomplete_rate_by_encounter=_coerce_float(row["diagnosisBasisIncompleteRateByEncounter"]),
             missing_diagnosis_rate_by_success=_coerce_float(row["missingDiagnosisRateBySuccess"]),
             missing_diagnosis_rate_by_encounter=_coerce_float(row["missingDiagnosisRateByEncounter"]),
-            range_start_date=str(row["rangeStartDate"]),
-            range_end_date=str(row["rangeEndDate"]),
+            range_start_date=_coerce_date_string(row["rangeStartDate"]),
+            range_end_date=_coerce_date_string(row["rangeEndDate"]),
             bucket_grain=cast(Any, row["bucketGrain"]),
-            bucket_start=str(row["bucketStart"]),
-            bucket_end=str(row["bucketEnd"]),
+            bucket_start=_coerce_date_string(row["bucketStart"]),
+            bucket_end=_coerce_date_string(row["bucketEnd"]),
             bucket_label=str(row["bucketLabel"]),
         )
         for row in rows
